@@ -33,13 +33,24 @@ while True:
     cv2.imshow("DroidCam", frame) #original image 
     
     processed = preprocess_image(frame)
-    cv2.imshow("procesed_image", processed)#preprocess image
+    
     
     edges = cv2.Canny(processed, 170, 180)
     cv2.imshow("Edges", edges)
     
-    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #kernel = np.ones((3, 3), np.uint8)
+    #dilated_edges = cv2.dilate(edges, kernel, iterations=1)
+    #
+    #closed_edges = cv2.morphologyEx(dilated_edges, cv2.MORPH_CLOSE, kernel)
     
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours = [cnt for cnt in contours if cv2.contourArea(cnt) >1000]
+    
+    
+    if contours:
+       largest_contour = max(contours, key=cv2.contourArea)
+       cv2.drawContours(output, [largest_contour], -1, (0, 0, 255), 3)  
+       cv2.imshow("Largest Contour", output)
         
     output = frame.copy()
     cv2.drawContours(output, contours, -1, (0, 255, 0), 2)
