@@ -78,7 +78,7 @@ while True:
     if contours:
        largest_contour = max(contours, key=cv2.contourArea)
        
-       inner_contour = get_inner_contour(largest_contour, margin_px=25)
+       inner_contour = get_inner_contour(largest_contour, margin_px=28.5)
     
        # Dibujar contorno interior (para depuración)
        cv2.drawContours(output, [inner_contour], -1, (255, 0, 0), 2)
@@ -108,8 +108,6 @@ while True:
            
            warped_with_cells = draw_chessboard_cells(warped.copy())
            cv2.imshow("Tablero con Casillas", warped_with_cells)
-           
-           cv2.imshow("Tablero Rectificado", warped)
 
     cv2.imshow("Detección", output)
     
