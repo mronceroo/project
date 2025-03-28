@@ -9,6 +9,23 @@ def preprocess_image(frame):
     equalized = cv2.equalizeHist(blurred) #better contrast
     return equalized
 
+def get_inner_contour(contour, margin_px=15):
+    """Reduce el contorno hacia adentro para obtener el borde interior"""
+    # Aproximar el contorno a un polígono
+    epsilon = 0.02 * cv2.arcLength(contour, True)
+    approx = cv2.approxPolyDP(contour, epsilon, True)
+    
+    # Contraer el polígono
+    center = np.mean(approx, axis=0)[0]
+    inner_contour = []
+    for point in approx:
+        vector = point[0] - center
+        unit_vector = vector / np.linalg.norm(vector)
+        new_point = point[0] - unit_vector * margin_px  # Contraer hacia adentro
+        inner_contour.append([new_point])
+    
+    return np.array(inner_contour, dtype=np.int32)
+
 def order_points(points):
     """Ordena los puntos en: [sup-izq, sup-der, inf-der, inf-izq]"""
     rect = np.zeros((4, 2), dtype="float32")
@@ -60,11 +77,16 @@ while True:
     
     if contours:
        largest_contour = max(contours, key=cv2.contourArea)
-       cv2.drawContours(output, [largest_contour], -1, (0, 0, 255), 3)  
-       cv2.imshow("Largest Contour", output)
        
-       epsilon = 0.1 * cv2.arcLength(largest_contour, True)
-       approx = cv2.approxPolyDP(largest_contour, epsilon, True) 
+       inner_contour = get_inner_contour(largest_contour, margin_px=25)
+    
+       # Dibujar contorno interior (para depuración)
+       cv2.drawContours(output, [inner_contour], -1, (255, 0, 0), 2)
+       cv2.imshow("Contorno Interior", output)
+       
+       
+       epsilon = 0.1 * cv2.arcLength(inner_contour, True)
+       approx = cv2.approxPolyDP(inner_contour, epsilon, True) 
     
        if len(approx) == 4:
            # Ordenar los puntos para la transformación de perspectiva
